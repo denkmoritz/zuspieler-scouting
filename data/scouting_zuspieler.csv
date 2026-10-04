@@ -1,0 +1,58 @@
+﻿Nr;Satz;Zuspieler;Rotation;Zuspieler_Reihe;Lfd_in_Rotation;Code;Annahme_von;Pass_nach;Angriffsart;Zuspiel_von;Annahme_Qualitaet;Ausfuehrender
+1;1;10;1;Hinten (Läufer);1;62N;6;2;Standard;N;3-m-Linie;Zuspieler 10
+2;1;10;1;Hinten (Läufer);2;124;1;2;Standard;4;abweichend;Zuspieler 10
+3;1;10;1;Hinten (Läufer);3;63O;6;3;Aufsteiger;O;optimal;Zuspieler 10
+4;1;10;1;Hinten (Läufer);4;122;1;2;Standard;2;abweichend;Zuspieler 10
+5;1;10;2;Vorne;1;63O;6;3;Aufsteiger;O;optimal;Zuspieler 10
+6;1;10;2;Vorne;2;11N;1;1;Standard;N;3-m-Linie;Zuspieler 10
+7;1;10;3;Vorne;1;64O;6;4;Standard;O;optimal;Zuspieler 10
+8;1;10;4;Vorne;1;11N;1;1;Standard;N;3-m-Linie;Zuspieler 10
+9;1;10;5;Hinten (Läufer);1;14O;1;4;Standard;O;optimal;Zuspieler 10
+10;1;10;5;Hinten (Läufer);2;Hilfs 641;6;4;Standard;1;abweichend;Hilfszuspieler
+11;1;10;6;Hinten (Läufer);1;523.5;5;2;Standard;3.5;abweichend;Zuspieler 10
+12;1;10;6;Hinten (Läufer);2;124;1;2;Standard;4;abweichend;Zuspieler 10
+13;1;10;6;Hinten (Läufer);3;14O;1;4;Standard;O;optimal;Zuspieler 10
+14;1;11;6;Hinten (Läufer);1;54O;5;4;Standard;O;optimal;Zuspieler 11
+15;1;11;5;Hinten (Läufer);1;523;5;2;Standard;3;abweichend;Zuspieler 11
+16;1;11;3;Vorne;1;13UO;1;3;Aufsteiger über Kopf;O;optimal;Zuspieler 11
+17;1;11;2;Vorne;1;53O;5;3;Aufsteiger;O;optimal;Zuspieler 11
+18;1;11;1;Hinten (Läufer);1;623;6;2;Standard;3;abweichend;Zuspieler 11
+19;2;11;1;Hinten (Läufer);1;64O;6;4;Standard;O;optimal;Zuspieler 11
+20;2;11;1;Hinten (Läufer);2;53O;5;3;Aufsteiger;O;optimal;Zuspieler 11
+21;2;11;6;Hinten (Läufer);1;623;6;2;Standard;3;abweichend;Zuspieler 11
+22;2;11;6;Hinten (Läufer);2;64O;6;4;Standard;O;optimal;Zuspieler 11
+23;2;11;6;Hinten (Läufer);3;66O;6;6;Standard;O;optimal;Zuspieler 11
+24;2;11;5;Hinten (Läufer);1;54N;5;4;Standard;N;3-m-Linie;Zuspieler 11
+25;2;11;5;Hinten (Läufer);2;624;6;2;Standard;4;abweichend;Zuspieler 11
+26;2;11;5;Hinten (Läufer);3;62N;6;2;Standard;N;3-m-Linie;Zuspieler 11
+27;2;11;5;Hinten (Läufer);4;63O;6;3;Aufsteiger;O;optimal;Zuspieler 11
+28;2;11;4;Vorne;1;141;1;4;Standard;1;abweichend;Zuspieler 11
+29;2;11;4;Vorne;2;64O;6;4;Standard;O;optimal;Zuspieler 11
+30;2;11;3;Vorne;1;54N;5;4;Standard;N;3-m-Linie;Zuspieler 11
+31;2;11;2;Vorne;1;54N;5;4;Standard;N;3-m-Linie;Zuspieler 11
+32;2;11;2;Vorne;2;63O;6;3;Aufsteiger;O;optimal;Zuspieler 11
+33;2;11;2;Vorne;3;613.5;6;1;Standard;3.5;abweichend;Zuspieler 11
+34;2;11;2;Vorne;4;53O;5;3;Aufsteiger;O;optimal;Zuspieler 11
+35;3;10;2;Vorne;1;63SO;6;3;Schuss;O;optimal;Zuspieler 10
+36;3;10;2;Vorne;2;54N;5;4;Standard;N;3-m-Linie;Zuspieler 10
+37;3;10;2;Vorne;3;63SO;6;3;Schuss;O;optimal;Zuspieler 10
+38;3;10;2;Vorne;4;64O;6;4;Standard;O;optimal;Zuspieler 10
+39;3;10;2;Vorne;5;53SO;5;3;Schuss;O;optimal;Zuspieler 10
+40;3;10;1;Hinten (Läufer);1;13O;1;3;Aufsteiger;O;optimal;Zuspieler 10
+41;3;10;1;Hinten (Läufer);2;121;1;2;Standard;1;abweichend;Zuspieler 10
+42;3;10;1;Hinten (Läufer);3;12O;1;2;Standard;O;optimal;Zuspieler 10
+43;3;10;1;Hinten (Läufer);4;64N;6;4;Standard;N;3-m-Linie;Zuspieler 10
+44;3;10;1;Hinten (Läufer);5;122;1;2;Standard;2;abweichend;Zuspieler 10
+45;3;10;6;Hinten (Läufer);1;64O;6;4;Standard;O;optimal;Zuspieler 10
+46;3;10;6;Hinten (Läufer);2;62O;6;2;Standard;O;optimal;Zuspieler 10
+47;3;10;6;Hinten (Läufer);3;146;1;4;Standard;6;abweichend;Zuspieler 10
+48;3;10;6;Hinten (Läufer);4;14O;1;4;Standard;O;optimal;Zuspieler 10
+49;3;10;5;Hinten (Läufer);1;546;5;4;Standard;6;abweichend;Zuspieler 10
+50;3;10;5;Hinten (Läufer);2;13O;1;3;Aufsteiger;O;optimal;Zuspieler 10
+51;3;10;5;Hinten (Läufer);3;643;6;4;Standard;3;abweichend;Zuspieler 10
+52;3;10;4;Vorne;1;53SO;5;3;Schuss;O;optimal;Zuspieler 10
+53;3;10;4;Vorne;2;11N;1;1;Standard;N;3-m-Linie;Zuspieler 10
+54;3;10;4;Vorne;3;14O;1;4;Standard;O;optimal;Zuspieler 10
+55;3;10;4;Vorne;4;543;5;4;Standard;3;abweichend;Zuspieler 10
+56;3;10;3;Vorne;1;6TO;6;;Zuspieler selbst rüber (T);O;optimal;Zuspieler 10
+57;3;10;3;Vorne;2;64N;6;4;Standard;N;3-m-Linie;Zuspieler 10

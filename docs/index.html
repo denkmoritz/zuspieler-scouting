@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zuspieler-Scouting</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f4f3ef; --surface: #fcfcfb; --court: #ecebe5; --border: #d9d7cf;
+    --text: #0b0b0b; --text2: #52514e; --muted: #8a8983;
+    --heat: #2a78d6; --set: #eb6834; --rec: #8a8983; --ball: #eda100; --arrow: #0b0b0b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page: #121211; --surface: #1a1a19; --court: #262624; --border: #3a3a37;
+      --text: #ffffff; --text2: #c3c2b7; --muted: #8a8983;
+      --heat: #3987e5; --set: #eb6834; --rec: #a09f98; --ball: #ffe08a; --arrow: #ffffff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--text); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 14px 20px; }
+  h1 { font-size: 19px; margin: 0; }
+  .tabs { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .tabs button { border: 0; border-radius: 0; padding: 7px 16px; }
+  button { font: inherit; color: var(--text2); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+  button:hover { color: var(--text); }
+  button[aria-pressed="true"] { background: var(--text); color: var(--surface); border-color: var(--text); }
+  .filters { display: flex; flex-wrap: wrap; gap: 10px 22px; padding: 0 20px 12px; align-items: flex-end; }
+  .group { display: flex; flex-direction: column; gap: 4px; }
+  .group > span { font-size: 12px; color: var(--muted); }
+  .chips { display: flex; gap: 4px; flex-wrap: wrap; }
+  .filters label, .controls label { display: flex; align-items: center; gap: 6px; color: var(--text2); font-size: 13px; }
+  #count { margin-left: auto; color: var(--text2); font-variant-numeric: tabular-nums; }
+  main { display: grid; grid-template-columns: minmax(320px, 1fr) minmax(300px, 420px); gap: 16px; padding: 0 20px 20px; align-items: start; }
+  @media (max-width: 820px) { main { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  svg { display: block; width: 100%; max-height: calc(100vh - 190px); min-height: 340px; }
+  .zone-nr { fill: var(--muted); font-size: 34px; }
+  .lbl { fill: var(--text); font-weight: 700; font-size: 44px; text-anchor: middle; paint-order: stroke; stroke: var(--surface); stroke-width: 9px; stroke-linejoin: round; }
+  .lbl.small { font-weight: 400; font-size: 26px; }
+  .arrow { cursor: pointer; }
+  .dim { opacity: .15; }
+  .code { font-size: 44px; font-weight: 700; color: var(--set); line-height: 1.1; margin: 4px 0; }
+  .meta { color: var(--text2); }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+  .controls #play { min-width: 92px; color: var(--text); font-weight: 600; }
+  select { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px; }
+  .list { max-height: 44vh; overflow: auto; border-top: 1px solid var(--border); margin: 0 -14px -14px; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted); padding: 6px 8px; position: sticky; top: 0; background: var(--surface); }
+  td { padding: 5px 8px; border-top: 1px solid var(--border); color: var(--text2); }
+  td.num, th.num { text-align: right; }
+  .list tr { cursor: pointer; }
+  .list tr:hover td { color: var(--text); }
+  tr.current td { color: var(--text); font-weight: 600; background: color-mix(in srgb, var(--set) 14%, transparent); }
+  .bar { display: inline-block; height: 8px; border-radius: 2px; background: var(--heat); vertical-align: middle; margin-right: 6px; }
+  h2 { font-size: 13px; font-weight: 600; margin: 14px 0 4px; color: var(--text2); }
+  h2:first-child { margin-top: 0; }
+  .legend { display: flex; gap: 16px; font-size: 12px; color: var(--text2); margin-top: 8px; flex-wrap: wrap; }
+  .legend i { display: inline-block; width: 22px; height: 0; border-top: 3px solid; vertical-align: middle; margin-right: 5px; }
+  #tip { position: fixed; pointer-events: none; background: var(--text); color: var(--surface); padding: 6px 9px; border-radius: 6px; font-size: 13px; display: none; z-index: 5; max-width: 260px; }
+  .empty { fill: var(--muted); font-size: 40px; text-anchor: middle; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Zuspieler-Scouting</h1>
+  <div class="tabs" role="tablist">
+    <button id="tab-replay" aria-pressed="true">Replay</button>
+    <button id="tab-dist" aria-pressed="false">Verteilung</button>
+  </div>
+  <label style="font-size:13px;color:var(--text2)">Andere CSV laden <input type="file" id="file" accept=".csv"></label>
+  <a href="videos.html" style="margin-left:auto;color:var(--text2)">Videos →</a>
+</header>
+
+<div class="filters" id="filters"></div>
+
+<main>
+  <div class="card">
+    <svg id="court" viewBox="-60 -160 1020 1090" role="img" aria-label="Halbes Volleyballfeld mit Ballwegen, Netz oben"></svg>
+    <div class="legend" id="legend"></div>
+  </div>
+  <div class="card">
+    <div id="panel-replay">
+      <div class="meta" id="r-head"></div>
+      <div class="code" id="r-code"></div>
+      <div class="meta" id="r-detail"></div>
+      <div class="controls">
+        <button id="prev" title="Vorherige Aktion (←)">◀</button>
+        <button id="play" title="Leertaste">▶ Play</button>
+        <button id="next" title="Nächste Aktion (→)">▶</button>
+        <select id="speed" title="Geschwindigkeit">
+          <option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option>
+        </select>
+        <label><input type="checkbox" id="trails" checked> Spuren</label>
+      </div>
+      <div class="list"><table><thead><tr><th>Nr</th><th>Satz</th><th>Zusp.</th><th>Rot.</th><th>Code</th><th>Art</th></tr></thead><tbody id="r-list"></tbody></table></div>
+    </div>
+    <div id="panel-dist" class="hidden">
+      <h2>Zielzonen</h2>
+      <table><thead><tr><th>Pass nach</th><th>Angriffsart</th><th class="num">n</th><th class="num">Anteil</th></tr></thead><tbody id="d-ziel"></tbody></table>
+      <h2>Zuspiel von</h2>
+      <table><thead><tr><th>Position</th><th class="num">n</th><th class="num">Anteil</th></tr></thead><tbody id="d-von"></tbody></table>
+      <h2>Annahme von</h2>
+      <table><thead><tr><th>Zone</th><th class="num">n</th><th class="num">Anteil</th></tr></thead><tbody id="d-ann"></tbody></table>
+    </div>
+  </div>
+</main>
+<div id="tip"></div>
+
+<script type="text/plain" id="csv">
+Nr;Satz;Zuspieler;Rotation;Zuspieler_Reihe;Lfd_in_Rotation;Code;Annahme_von;Pass_nach;Angriffsart;Zuspiel_von;Annahme_Qualitaet;Ausfuehrender
+1;1;10;1;Hinten (Läufer);1;62N;6;2;Standard;N;3-m-Linie;Zuspieler 10
+2;1;10;1;Hinten (Läufer);2;124;1;2;Standard;4;abweichend;Zuspieler 10
+3;1;10;1;Hinten (Läufer);3;63O;6;3;Aufsteiger;O;optimal;Zuspieler 10
+4;1;10;1;Hinten (Läufer);4;122;1;2;Standard;2;abweichend;Zuspieler 10
+5;1;10;2;Vorne;1;63O;6;3;Aufsteiger;O;optimal;Zuspieler 10
+6;1;10;2;Vorne;2;11N;1;1;Standard;N;3-m-Linie;Zuspieler 10
+7;1;10;3;Vorne;1;64O;6;4;Standard;O;optimal;Zuspieler 10
+8;1;10;4;Vorne;1;11N;1;1;Standard;N;3-m-Linie;Zuspieler 10
+9;1;10;5;Hinten (Läufer);1;14O;1;4;Standard;O;optimal;Zuspieler 10
+10;1;10;5;Hinten (Läufer);2;Hilfs 641;6;4;Standard;1;abweichend;Hilfszuspieler
+11;1;10;6;Hinten (Läufer);1;523.5;5;2;Standard;3.5;abweichend;Zuspieler 10
+12;1;10;6;Hinten (Läufer);2;124;1;2;Standard;4;abweichend;Zuspieler 10
+13;1;10;6;Hinten (Läufer);3;14O;1;4;Standard;O;optimal;Zuspieler 10
+14;1;11;6;Hinten (Läufer);1;54O;5;4;Standard;O;optimal;Zuspieler 11
+15;1;11;5;Hinten (Läufer);1;523;5;2;Standard;3;abweichend;Zuspieler 11
+16;1;11;3;Vorne;1;13UO;1;3;Aufsteiger über Kopf;O;optimal;Zuspieler 11
+17;1;11;2;Vorne;1;53O;5;3;Aufsteiger;O;optimal;Zuspieler 11
+18;1;11;1;Hinten (Läufer);1;623;6;2;Standard;3;abweichend;Zuspieler 11
+19;2;11;1;Hinten (Läufer);1;64O;6;4;Standard;O;optimal;Zuspieler 11
+20;2;11;1;Hinten (Läufer);2;53O;5;3;Aufsteiger;O;optimal;Zuspieler 11
+21;2;11;6;Hinten (Läufer);1;623;6;2;Standard;3;abweichend;Zuspieler 11
+22;2;11;6;Hinten (Läufer);2;64O;6;4;Standard;O;optimal;Zuspieler 11
+23;2;11;6;Hinten (Läufer);3;66O;6;6;Standard;O;optimal;Zuspieler 11
+24;2;11;5;Hinten (Läufer);1;54N;5;4;Standard;N;3-m-Linie;Zuspieler 11
+25;2;11;5;Hinten (Läufer);2;624;6;2;Standard;4;abweichend;Zuspieler 11
+26;2;11;5;Hinten (Läufer);3;62N;6;2;Standard;N;3-m-Linie;Zuspieler 11
+27;2;11;5;Hinten (Läufer);4;63O;6;3;Aufsteiger;O;optimal;Zuspieler 11
+28;2;11;4;Vorne;1;141;1;4;Standard;1;abweichend;Zuspieler 11
+29;2;11;4;Vorne;2;64O;6;4;Standard;O;optimal;Zuspieler 11
+30;2;11;3;Vorne;1;54N;5;4;Standard;N;3-m-Linie;Zuspieler 11
+31;2;11;2;Vorne;1;54N;5;4;Standard;N;3-m-Linie;Zuspieler 11
+32;2;11;2;Vorne;2;63O;6;3;Aufsteiger;O;optimal;Zuspieler 11
+33;2;11;2;Vorne;3;613.5;6;1;Standard;3.5;abweichend;Zuspieler 11
+34;2;11;2;Vorne;4;53O;5;3;Aufsteiger;O;optimal;Zuspieler 11
+35;3;10;2;Vorne;1;63SO;6;3;Schuss;O;optimal;Zuspieler 10
+36;3;10;2;Vorne;2;54N;5;4;Standard;N;3-m-Linie;Zuspieler 10
+37;3;10;2;Vorne;3;63SO;6;3;Schuss;O;optimal;Zuspieler 10
+38;3;10;2;Vorne;4;64O;6;4;Standard;O;optimal;Zuspieler 10
+39;3;10;2;Vorne;5;53SO;5;3;Schuss;O;optimal;Zuspieler 10
+40;3;10;1;Hinten (Läufer);1;13O;1;3;Aufsteiger;O;optimal;Zuspieler 10
+41;3;10;1;Hinten (Läufer);2;121;1;2;Standard;1;abweichend;Zuspieler 10
+42;3;10;1;Hinten (Läufer);3;12O;1;2;Standard;O;optimal;Zuspieler 10
+43;3;10;1;Hinten (Läufer);4;64N;6;4;Standard;N;3-m-Linie;Zuspieler 10
+44;3;10;1;Hinten (Läufer);5;122;1;2;Standard;2;abweichend;Zuspieler 10
+45;3;10;6;Hinten (Läufer);1;64O;6;4;Standard;O;optimal;Zuspieler 10
+46;3;10;6;Hinten (Läufer);2;62O;6;2;Standard;O;optimal;Zuspieler 10
+47;3;10;6;Hinten (Läufer);3;146;1;4;Standard;6;abweichend;Zuspieler 10
+48;3;10;6;Hinten (Läufer);4;14O;1;4;Standard;O;optimal;Zuspieler 10
+49;3;10;5;Hinten (Läufer);1;546;5;4;Standard;6;abweichend;Zuspieler 10
+50;3;10;5;Hinten (Läufer);2;13O;1;3;Aufsteiger;O;optimal;Zuspieler 10
+51;3;10;5;Hinten (Läufer);3;643;6;4;Standard;3;abweichend;Zuspieler 10
+52;3;10;4;Vorne;1;53SO;5;3;Schuss;O;optimal;Zuspieler 10
+53;3;10;4;Vorne;2;11N;1;1;Standard;N;3-m-Linie;Zuspieler 10
+54;3;10;4;Vorne;3;14O;1;4;Standard;O;optimal;Zuspieler 10
+55;3;10;4;Vorne;4;543;5;4;Standard;3;abweichend;Zuspieler 10
+56;3;10;3;Vorne;1;6TO;6;;Zuspieler selbst rüber (T);O;optimal;Zuspieler 10
+57;3;10;3;Vorne;2;64N;6;4;Standard;N;3-m-Linie;Zuspieler 10
+</script>
+<script>
+"use strict";
+// ---------------------------------------------------------------- Geometrie
+// x: 0..9 m von links, d: Abstand vom Netz in m. SVG: 100 Einheiten pro Meter.
+const ANNAHME = { "5": [1.5, 6.5], "6": [4.5, 6.5], "1": [7.5, 6.5] };
+const ZUSPIEL = { O: [5.5, 0.5], N: [5.5, 3.0], "2": [7.0, 0.7], "3": [4.5, 0.7], "3.5": [3.0, 0.7], "4": [1.8, 0.7], "1": [7.5, 5.0], "6": [4.5, 5.0] };
+const ZIELZONEN = { "4": [0, 0, 3, 3], "3": [3, 0, 6, 3], "2": [6, 0, 9, 3], "6": [3, 3, 6, 9], "1": [6, 3, 9, 9], T: [0, -1.2, 9, -0.15] };
+const ZIEL_LABEL = { "4": [1.5, 2.1], "3": [4.5, 2.1], "2": [7.5, 2.1], "6": [4.5, 8.0], "1": [7.5, 8.0], T: [7.5, -0.75] };
+const VON_NAME = { O: "O (optimal am Netz)", N: "N (3-m-Linie)" };
+
+function angriffPunkt(r) {
+  const [sx] = ZUSPIEL[r.Zuspiel_von];
+  if (r.Ziel === "T") return [sx - 0.5, -1.0];
+  if (r.Angriffsart === "Schuss") return [sx - 2.0, 0.5];
+  if (r.Angriffsart === "Aufsteiger über Kopf") return [sx + 0.9, 0.5];
+  if (r.Ziel === "3") return [Math.abs(sx - 4.5) > 0.8 ? 4.5 : sx - 1.0, 0.5];
+  return { "4": [0.7, 0.6], "2": [8.3, 0.6], "1": [7.5, 3.6], "6": [4.5, 3.6] }[r.Ziel];
+}
+const px = ([x, d]) => [x * 100, d * 100];
+
+// Quadratischer Bogen; netznahe Pässe wölben sich ins Feld hinein.
+function bogen(a, b, staerke, insFeld) {
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  const s = insFeld ? (dx < 0 ? -1 : 1) : 1;
+  const c = [(a[0] + b[0]) / 2 - dy * staerke * s, (a[1] + b[1]) / 2 + dx * staerke * s];
+  return { d: `M${a[0]},${a[1]} Q${c[0]},${c[1]} ${b[0]},${b[1]}`, c, b };
+}
+function spitze(bg, len) {
+  const ang = Math.atan2(bg.b[1] - bg.c[1], bg.b[0] - bg.c[0]) * 180 / Math.PI;
+  return `<polygon points="0,0 ${-len},${len * 0.45} ${-len},${-len * 0.45}" transform="translate(${bg.b[0]},${bg.b[1]}) rotate(${ang})"/>`;
+}
+
+// -------------------------------------------------------------------- Daten
+function parseCSV(text) {
+  const lines = text.replace(/^﻿/, "").trim().split(/\r?\n/);
+  const head = lines.shift().split(";");
+  return lines.filter(l => l.trim()).map(l => {
+    const r = Object.fromEntries(l.split(";").map((v, i) => [head[i], v.trim()]));
+    r.Ziel = r.Pass_nach || "T";
+    return r;
+  }).filter(r => ANNAHME[r.Annahme_von] && ZUSPIEL[r.Zuspiel_von]);
+}
+let DATA = parseCSV(document.getElementById("csv").textContent);
+
+// ------------------------------------------------------------------- Filter
+const GROUPS = [
+  ["Zuspieler", "Zuspieler", ["10", "11"]],
+  ["Satz", "Satz", ["1", "2", "3"]],
+  ["Rotation", "Rotation", ["1", "2", "3", "4", "5", "6"]],
+  ["Zuspieler-Reihe", "Zuspieler_Reihe", ["Vorne", "Hinten (Läufer)"]],
+  ["Annahmequalität", "Annahme_Qualitaet", ["optimal", "3-m-Linie", "abweichend"]],
+  ["Annahmezone", "Annahme_von", ["5", "6", "1"]],
+];
+const sel = Object.fromEntries(GROUPS.map(g => [g[1], new Set()]));
+let hilfs = false;
+
+function buildFilters() {
+  const el = document.getElementById("filters");
+  el.innerHTML = GROUPS.map(([name, key, vals]) =>
+    `<div class="group"><span>${name}</span><div class="chips">${vals.map(v =>
+      `<button data-key="${key}" data-val="${v}" aria-pressed="false">${v}</button>`).join("")}</div></div>`).join("") +
+    `<label><input type="checkbox" id="hilfs"> Hilfszuspieler einblenden</label>
+     <button id="reset">Zurücksetzen</button><span id="count"></span>`;
+  el.addEventListener("click", e => {
+    const b = e.target.closest("button[data-key]");
+    if (b) {
+      const s = sel[b.dataset.key];
+      s.has(b.dataset.val) ? s.delete(b.dataset.val) : s.add(b.dataset.val);
+      b.setAttribute("aria-pressed", s.has(b.dataset.val));
+      refilter();
+    } else if (e.target.id === "reset") {
+      Object.values(sel).forEach(s => s.clear());
+      el.querySelectorAll("button[data-key]").forEach(b => b.setAttribute("aria-pressed", "false"));
+      refilter();
+    }
+  });
+  document.getElementById("hilfs").addEventListener("change", e => { hilfs = e.target.checked; refilter(); });
+}
+// Innerhalb einer Gruppe ODER, zwischen Gruppen UND; leere Gruppe = alle.
+const filtered = () => DATA.filter(r =>
+  (hilfs || r.Ausfuehrender !== "Hilfszuspieler") &&
+  GROUPS.every(([, key]) => !sel[key].size || sel[key].has(r[key])));
+
+// ------------------------------------------------------------------ Zustand
+const svg = document.getElementById("court");
+let rows = [], mode = "replay", idx = 0, t = 0, playing = false, last = 0;
+
+function refilter() {
+  rows = filtered();
+  idx = 0; t = 0; playing = false;
+  const total = DATA.filter(r => hilfs || r.Ausfuehrender !== "Hilfszuspieler").length;
+  document.getElementById("count").textContent = `${rows.length} von ${total} Aktionen`;
+  render();
+}
+
+function feldSVG() {
+  const zn = { "4": [28, 52], "3": [328, 52], "2": [628, 52], "5": [28, 880], "6": [328, 880], "1": [628, 880] };
+  return `
+    <rect x="0" y="-140" width="900" height="140" fill="var(--court)" opacity=".5"/>
+    <rect x="0" y="0" width="900" height="900" fill="var(--court)" stroke="var(--text2)" stroke-width="4"/>
+    <line x1="0" y1="300" x2="900" y2="300" stroke="var(--text2)" stroke-width="3"/>
+    <path d="M300,0V900M600,0V900" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="10 10" opacity=".6"/>
+    ${Object.entries(zn).map(([z, [x, y]]) => `<text class="zone-nr" x="${x}" y="${y}">${z}</text>`).join("")}
+    <g id="layer"></g>
+    <line x1="-40" y1="0" x2="940" y2="0" stroke="var(--text)" stroke-width="9" stroke-linecap="round"/>
+    <text x="-40" y="-18" font-size="24" fill="var(--muted)">Netz</text>`;
+}
+
+function render() {
+  document.getElementById("panel-replay").classList.toggle("hidden", mode !== "replay");
+  document.getElementById("panel-dist").classList.toggle("hidden", mode !== "dist");
+  document.getElementById("tab-replay").setAttribute("aria-pressed", mode === "replay");
+  document.getElementById("tab-dist").setAttribute("aria-pressed", mode === "dist");
+  document.getElementById("legend").innerHTML = mode === "replay"
+    ? `<span><i style="border-color:var(--rec)"></i>Annahme → Zuspieler</span><span><i style="border-color:var(--set)"></i>Zuspiel → Angriff</span>`
+    : `<span><i style="border-color:var(--arrow)"></i>Zuspiel, Pfeildicke = Anteil</span><span><i style="border-color:var(--rec);opacity:.5"></i>Annahme</span><span><i style="border-top-width:10px;border-color:var(--heat)"></i>Zielzone, Deckkraft = Anteil</span>`;
+  if (!rows.length) {
+    document.getElementById("layer").innerHTML = `<text class="empty" x="450" y="470">Keine Aktionen für diese Filter</text>`;
+    renderReplayPanel(); renderDistPanel();
+    return;
+  }
+  if (mode === "replay") { buildReplay(); renderReplayPanel(); drawFrame(); }
+  else { renderDist(); renderDistPanel(); }
+}
+
+// ------------------------------------------------------------------- Replay
+const KOPF = 26;
+function wege(r) {
+  const a = px(ANNAHME[r.Annahme_von]), s = px(ZUSPIEL[r.Zuspiel_von]), z = px(angriffPunkt(r));
+  return { a, s, an: bogen(a, s, 0.16, false), zu: bogen(s, z, 0.16, true) };
+}
+let cur = null;
+function buildReplay() {
+  const layer = document.getElementById("layer");
+  const showTrails = document.getElementById("trails").checked;
+  let html = "";
+  if (showTrails) for (const r of rows.slice(0, idx)) {
+    const w = wege(r);
+    html += `<path d="${w.an.d}" fill="none" stroke="var(--rec)" stroke-width="3" opacity=".18"/>
+             <g opacity=".3" fill="var(--set)"><path d="${w.zu.d}" fill="none" stroke="var(--set)" stroke-width="5"/>${spitze(w.zu, 20)}</g>`;
+  }
+  const w = wege(rows[idx]);
+  html += `<path id="p-an" d="${w.an.d}" fill="none" stroke="var(--rec)" stroke-width="5" stroke-linecap="round"/>
+           <path id="p-zu" d="${w.zu.d}" fill="none" stroke="var(--set)" stroke-width="8"/>
+           <g id="p-kopf" fill="var(--set)">${spitze(w.zu, KOPF)}</g>
+           <circle id="p-ring" cx="${w.s[0]}" cy="${w.s[1]}" r="20" fill="none" stroke="var(--set)" stroke-width="4"/>
+           <circle id="p-ball" r="13" fill="var(--ball)" stroke="var(--surface)" stroke-width="3"/>`;
+  layer.innerHTML = html;
+  const an = layer.querySelector("#p-an"), zu = layer.querySelector("#p-zu");
+  cur = { an, zu, lAn: an.getTotalLength(), lZu: zu.getTotalLength(), kopf: layer.querySelector("#p-kopf"), ring: layer.querySelector("#p-ring"), ball: layer.querySelector("#p-ball") };
+}
+function drawFrame() {
+  if (!cur) return;
+  const p1 = Math.min(1, t / 0.42), p2 = Math.max(0, Math.min(1, (t - 0.42) / 0.42));
+  cur.an.style.strokeDasharray = `${p1 * cur.lAn} ${cur.lAn + 10}`;
+  cur.zu.style.strokeDasharray = `${Math.min(p2 * cur.lZu, Math.max(0, cur.lZu - KOPF + 2))} ${cur.lZu + 10}`;
+  cur.zu.style.visibility = p2 > 0 ? "visible" : "hidden";
+  cur.kopf.style.visibility = p2 >= 1 ? "visible" : "hidden";
+  cur.ring.style.visibility = p1 >= 1 ? "visible" : "hidden";
+  const pt = p2 > 0 ? cur.zu.getPointAtLength(p2 * cur.lZu) : cur.an.getPointAtLength(p1 * cur.lAn);
+  cur.ball.setAttribute("cx", pt.x); cur.ball.setAttribute("cy", pt.y);
+  cur.ball.style.visibility = p2 >= 1 ? "hidden" : "visible";
+}
+function tick(ts) {
+  if (!playing) return;
+  const speed = +document.getElementById("speed").value;
+  t += (ts - last) * speed / 1900; last = ts;
+  if (t >= 1) {
+    if (idx >= rows.length - 1) { t = 1; playing = false; }
+    else { idx++; t = 0; buildReplay(); }
+    renderReplayPanel();
+  }
+  drawFrame();
+  if (playing) requestAnimationFrame(tick);
+}
+function setPlaying(on) {
+  if (on && !rows.length) return;
+  if (on && idx >= rows.length - 1 && t >= 1) { idx = 0; t = 0; buildReplay(); }
+  playing = on;
+  renderReplayPanel();
+  if (on) { last = performance.now(); requestAnimationFrame(tick); }
+}
+function goto(i, end) {
+  if (!rows.length) return;
+  idx = Math.max(0, Math.min(rows.length - 1, i)); t = end ? 1 : 0;
+  buildReplay(); drawFrame(); renderReplayPanel();
+}
+function renderReplayPanel() {
+  document.getElementById("play").textContent = playing ? "❚❚ Pause" : "▶ Play";
+  const r = rows[idx];
+  document.getElementById("r-head").textContent = r ? `Satz ${r.Satz} · ${r.Ausfuehrender} · Rotation ${r.Rotation} (${r.Zuspieler_Reihe})` : "";
+  document.getElementById("r-code").textContent = r ? r.Code : "–";
+  document.getElementById("r-detail").textContent = r
+    ? `Annahme von ${r.Annahme_von} (${r.Annahme_Qualitaet}) · Zuspiel von ${r.Zuspiel_von} · ${r.Ziel === "T" ? r.Angriffsart : `Pass nach ${r.Ziel}, ${r.Angriffsart}`} · Aktion ${idx + 1}/${rows.length}` : "";
+  const list = document.getElementById("r-list");
+  list.innerHTML = rows.map((r, i) =>
+    `<tr data-i="${i}" class="${i === idx ? "current" : ""}"><td>${r.Nr}</td><td>${r.Satz}</td><td>${r.Zuspieler}</td><td>${r.Rotation}</td><td>${r.Code}</td><td>${r.Angriffsart}</td></tr>`).join("");
+  const row = list.querySelector(".current");
+  if (row) {
+    const box = list.closest(".list");
+    const top = row.offsetTop - 30, bottom = row.offsetTop + row.offsetHeight;
+    if (top < box.scrollTop) box.scrollTop = top;
+    else if (bottom > box.scrollTop + box.clientHeight) box.scrollTop = bottom - box.clientHeight;
+  }
+}
+
+// --------------------------------------------------------------- Verteilung
+function gruppen(list, key) {
+  const m = new Map();
+  for (const r of list) { const k = key(r); if (!m.has(k)) m.set(k, []); m.get(k).push(r); }
+  return [...m.values()].sort((a, b) => b.length - a.length);
+}
+const pct = (k, n) => `${Math.round(100 * k / n)} %`;
+function renderDist() {
+  const n = rows.length;
+  let html = "";
+  for (const g of gruppen(rows, r => r.Ziel)) {
+    const [x0, d0, x1, d1] = ZIELZONEN[g[0].Ziel];
+    html += `<rect x="${x0 * 100}" y="${d0 * 100}" width="${(x1 - x0) * 100}" height="${(d1 - d0) * 100}" fill="var(--heat)" opacity="${Math.min(0.85, 0.08 + 1.4 * g.length / n)}"/>`;
+  }
+  for (const g of gruppen(rows, r => r.Annahme_von + "|" + r.Zuspiel_von)) {
+    const a = px(ANNAHME[g[0].Annahme_von]), s = px(ZUSPIEL[g[0].Zuspiel_von]);
+    html += `<line x1="${a[0]}" y1="${a[1]}" x2="${s[0]}" y2="${s[1]}" stroke="var(--rec)" stroke-width="${2 + 40 * g.length / n}" opacity=".3" stroke-linecap="round"/>`;
+  }
+  gruppen(rows, r => [r.Zuspiel_von, r.Ziel, r.Angriffsart].join("|")).forEach(g => {
+    const r = g[0], w = Math.min(30, 3 + 70 * g.length / n), kopf = 18 + w * 1.3;
+    const bg = bogen(px(ZUSPIEL[r.Zuspiel_von]), px(angriffPunkt(r)), 0.12, true);
+    const tip = `${g.length}× von ${r.Zuspiel_von} ${r.Ziel === "T" ? "selbst rüber (T)" : `nach ${r.Ziel} (${r.Angriffsart})`} · ${pct(g.length, n)} aller Zuspiele`;
+    html += `<g class="arrow" data-tip="${tip}" fill="var(--arrow)" opacity=".85">
+      <path d="${bg.d}" fill="none" stroke="var(--arrow)" stroke-width="${w}" data-kopf="${kopf}"/>${spitze(bg, kopf)}
+      <path d="${bg.d}" fill="none" stroke="transparent" stroke-width="${Math.max(36, w + 16)}"/></g>`;
+  });
+  for (const g of gruppen(rows, r => r.Ziel)) {
+    const [x, d] = px(ZIEL_LABEL[g[0].Ziel]);
+    html += `<text class="lbl" x="${x}" y="${d}">${pct(g.length, n)}</text><text class="lbl small" x="${x}" y="${d + 34}">n = ${g.length}</text>`;
+  }
+  const layer = document.getElementById("layer");
+  layer.innerHTML = html;
+  // Linie unter der Pfeilspitze enden lassen
+  layer.querySelectorAll("path[data-kopf]").forEach(p => {
+    const l = p.getTotalLength();
+    p.style.strokeDasharray = `${Math.max(0, l - p.dataset.kopf + 2)} ${l + 10}`;
+  });
+}
+function renderDistPanel() {
+  const n = rows.length;
+  const zeile = (cells, k) => `<tr>${cells.map(c => `<td>${c}</td>`).join("")}<td class="num">${k}</td><td class="num"><span class="bar" style="width:${Math.round(60 * k / n)}px"></span>${pct(k, n)}</td></tr>`;
+  document.getElementById("d-ziel").innerHTML = gruppen(rows, r => r.Ziel + "|" + r.Angriffsart).map(g => zeile([g[0].Ziel, g[0].Angriffsart], g.length)).join("");
+  document.getElementById("d-von").innerHTML = gruppen(rows, r => r.Zuspiel_von).map(g => zeile([VON_NAME[g[0].Zuspiel_von] || "Zone " + g[0].Zuspiel_von], g.length)).join("");
+  document.getElementById("d-ann").innerHTML = gruppen(rows, r => r.Annahme_von).map(g => zeile([g[0].Annahme_von], g.length)).join("");
+}
+
+// ------------------------------------------------------------------- Events
+const tipEl = document.getElementById("tip");
+svg.addEventListener("mousemove", e => {
+  const g = e.target.closest(".arrow");
+  svg.querySelectorAll(".arrow").forEach(a => a.classList.toggle("dim", !!g && a !== g));
+  if (!g) { tipEl.style.display = "none"; return; }
+  tipEl.textContent = g.dataset.tip;
+  tipEl.style.display = "block";
+  tipEl.style.left = Math.min(e.clientX + 14, innerWidth - 270) + "px";
+  tipEl.style.top = e.clientY + 14 + "px";
+});
+svg.addEventListener("mouseleave", () => { tipEl.style.display = "none"; svg.querySelectorAll(".dim").forEach(a => a.classList.remove("dim")); });
+document.getElementById("tab-replay").onclick = () => { mode = "replay"; render(); };
+document.getElementById("tab-dist").onclick = () => { mode = "dist"; playing = false; render(); };
+document.getElementById("play").onclick = () => setPlaying(!playing);
+document.getElementById("prev").onclick = () => { playing = false; goto(idx - 1, true); };
+document.getElementById("next").onclick = () => { playing = false; goto(idx + 1, true); };
+document.getElementById("trails").onchange = () => { if (rows.length && mode === "replay") { buildReplay(); drawFrame(); } };
+document.getElementById("r-list").addEventListener("click", e => {
+  const tr = e.target.closest("tr");
+  if (tr) { goto(+tr.dataset.i, false); setPlaying(true); }
+});
+document.addEventListener("keydown", e => {
+  if (mode !== "replay" || /INPUT|SELECT|BUTTON/.test(e.target.tagName)) return;
+  if (e.code === "Space") { e.preventDefault(); setPlaying(!playing); }
+  if (e.code === "ArrowLeft") { playing = false; goto(idx - 1, true); }
+  if (e.code === "ArrowRight") { playing = false; goto(idx + 1, true); }
+});
+document.getElementById("file").addEventListener("change", async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  DATA = parseCSV(await f.text());
+  refilter();
+});
+
+if (location.hash === "#verteilung") mode = "dist";
+svg.innerHTML = feldSVG();
+buildFilters();
+refilter();
+</script>
+</body>
+</html>

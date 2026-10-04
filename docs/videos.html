@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zuspieler-Scouting · Videos</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f4f3ef; --surface: #fcfcfb; --border: #d9d7cf;
+    --text: #0b0b0b; --text2: #52514e; --muted: #8a8983;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page: #121211; --surface: #1a1a19; --border: #3a3a37;
+      --text: #ffffff; --text2: #c3c2b7; --muted: #8a8983;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--text); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 14px 20px; }
+  h1 { font-size: 19px; margin: 0; }
+  header a { margin-left: auto; color: var(--text2); }
+  main { padding: 0 20px 28px; max-width: 1500px; }
+  h2 { font-size: 13px; font-weight: 600; color: var(--text2); margin: 22px 0 10px; }
+  h2:first-child { margin-top: 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 16px; }
+  figure { margin: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  video { display: block; width: 100%; aspect-ratio: 16 / 9; background: #1a1a19; }
+  figcaption { padding: 10px 14px 12px; }
+  figcaption b { display: block; font-weight: 600; }
+  figcaption span { color: var(--text2); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Zuspieler-Scouting · Videos</h1>
+  <a href="./">← Interaktive Ansicht</a>
+</header>
+<main id="main"></main>
+<script>
+"use strict";
+const GRUPPEN = [
+  ["Überblick", [
+    ["Kombiniert", "Replay und Verteilung", "Links laufen die Ballwege, rechts baut sich die Verteilung auf."],
+    ["Verteilung", "Zuspielverteilung gesamt", "Aufsummierte Pfeile und Heatmap der Zielzonen."],
+    ["ReplayAlle", "Replay: alle Aktionen", "Alle Ballwege nacheinander, blockweise nach Satz und Zuspieler."],
+  ]],
+  ["Vergleiche", [
+    ["VergleichZuspieler", "Zuspieler 10 vs. 11", "Verteilung beider Zuspieler nebeneinander."],
+    ["VergleichRotation", "Nach Rotation", "Oben Läufer-Rotationen (1, 6, 5), unten Zuspieler vorne (4, 3, 2)."],
+    ["VergleichReihe", "Vorne vs. hinten", "Zuspieler in der Vorderreihe gegen Läufer aus dem Hinterfeld."],
+    ["VergleichAnnahmequalitaet", "Nach Annahmequalität", "Optimal, 3-m-Linie, abweichend."],
+    ["VergleichAnnahmezone", "Nach Annahmezone", "Annahme von 5, 6 und 1."],
+  ]],
+  ["Replay einzeln", [
+    ["ReplaySatz1", "Satz 1", "Alle Aktionen aus Satz 1."],
+    ["ReplaySatz2", "Satz 2", "Alle Aktionen aus Satz 2."],
+    ["ReplaySatz3", "Satz 3", "Alle Aktionen aus Satz 3."],
+    ["ReplayZuspieler10", "Zuspieler 10", "Alle Aktionen von Zuspieler 10."],
+    ["ReplayZuspieler11", "Zuspieler 11", "Alle Aktionen von Zuspieler 11."],
+  ]],
+];
+document.getElementById("main").innerHTML = GRUPPEN.map(([titel, videos]) =>
+  `<h2>${titel}</h2><div class="grid">${videos.map(([datei, name, text]) =>
+    `<figure><video controls preload="metadata" src="videos/${datei}.mp4#t=3"></video>
+     <figcaption><b>${name}</b><span>${text}</span></figcaption></figure>`).join("")}</div>`).join("");
+</script>
+</body>
+</html>
